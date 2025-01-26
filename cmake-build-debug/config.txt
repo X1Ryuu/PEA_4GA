@@ -1,0 +1,5 @@
+inputFileName=ftv47.xml
+coolingRate=1.1
+optimal=10
+timeLimit=1.1
+choice=10

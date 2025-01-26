@@ -1,0 +1,3 @@
+C:/Users/Bart/CLionProjects/PEA4/cmake-build-debug/CMakeFiles/PEA4.dir
+C:/Users/Bart/CLionProjects/PEA4/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Bart/CLionProjects/PEA4/cmake-build-debug/CMakeFiles/rebuild_cache.dir
