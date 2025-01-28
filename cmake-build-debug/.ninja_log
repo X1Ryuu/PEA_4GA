@@ -1,0 +1,8 @@
+# ninja log v6
+74	2102	7596672882325488	CMakeFiles/PEA4.dir/Utils/Parser.cpp.obj	9b6296af4141a071
+63	2889	7596672882210221	CMakeFiles/PEA4.dir/Matrix/DynamicMatrix.cpp.obj	52cc774e68b87d7b
+52	3219	7596672882108862	CMakeFiles/PEA4.dir/Utils/Utils.cpp.obj	7ea3fb720a2bd391
+38	4130	7596672881968641	CMakeFiles/PEA4.dir/GA/GeneticAlgorithm.cpp.obj	c158b666d878d0f7
+86	6059	7596672882451393	CMakeFiles/PEA4.dir/Utils/pugixml/pugixml.cpp.obj	4c737a172ed1a735
+29	4089	7596674762940971	CMakeFiles/PEA4.dir/main.cpp.obj	2e13c40b16d04526
+4092	5436	7596674803574498	PEA4.exe	7dff39fe28b73dab

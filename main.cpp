@@ -66,7 +66,9 @@ void test()
 
     for(int numFile=0; numFile<3; numFile++){
         for(int numCross=0; numCross<2; numCross++){
-            for(int numMut=0; numMut<2; numMut++){
+            for(int numMut=0; numMut<2; numMut++)
+            {
+            }
         }
     }
 
@@ -87,7 +89,7 @@ void test()
         {
             for(int k=0; k<5; k++)
             {
-                GeneticAlgorithm ga(matrix, 100, 0.8, 0.01, 1, 2, 120, optimals);
+                GeneticAlgorithm ga(matrix, 100, 0.8, 0.01, 1, 2, 120, 0);
                 std::cout<<"File: " << i << " iter: "<< k << ", method: " << 0 <<std::endl;
                 auto [bestPath, bestDistance] = ga.run();
                 std::cout << "Najlepsza znaleziona trasa:\n";
@@ -107,9 +109,14 @@ void test()
 
 
 
-int main() {
+int main(){
     readConfig();
     std::cout << "Hello, World!" << std::endl;
+    random_device dev;
+    mt19937 rng(dev());
+
+    std::uniform_int_distribution<mt19937::result_type> dis(0, 6 - 1);
+    printf("%d, %d", dis(rng), dis(rng));
     return 0;
 }
 

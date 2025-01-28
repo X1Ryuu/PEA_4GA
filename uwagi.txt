@@ -1,0 +1,4 @@
+crossover pmx, ox, ex, px - wybrać sobie 2, mutację już nie trzeba
+dodać turniej do ustalania nowej populacji
+inicjalizacja populacji najbliższym sąsiadem - może tyle ile jest wierzchołków, tyle zrobić sąsiadów
+2-opt, ox2, ox1, sx

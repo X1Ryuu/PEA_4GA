@@ -21,8 +21,9 @@ void GeneticAlgorithm::initializePopulation() {
         iota(path.begin(), path.end(), 0); // Initialize with 0, 1, ..., size-1
         shuffle(path.begin(), path.end(), rng);
 
-        int fitness = calculateFitness(path);
-        population.push_back({path, fitness});
+        population.push_back({path, calculateFitness(path)});
+        /*int fitness = calculateFitness(path);
+        population.push_back({path, fitness});*/
     }
 }
 
@@ -34,6 +35,24 @@ int GeneticAlgorithm::calculateFitness(const vector<int>& path) {
     totalCost += costMatrix.getValue(path.back(), path.front()); // Return to start
     return totalCost;
 }
+
+void GeneticAlgorithm::crossOverOX(Individual& parent1, Individual& parent2)
+{
+
+
+
+}
+
+
+void GeneticAlgorithm::crossOverPMX(Individual& parent1, Individual& parent2)
+{
+    random_device dev;
+    mt19937 rng(dev());
+
+    std::uniform_int_distribution<mt19937::result_type> dis(0, costMatrix.getSize() - 1);
+}
+
+
 
 void GeneticAlgorithm::crossoverOnePoint(Individual& parent1, Individual& parent2) {
     uniform_int_distribution<int> dist(1, parent1.path.size() - 2);
@@ -106,7 +125,8 @@ void GeneticAlgorithm::evolve() {
             if (crossOption==0){
                 crossoverOnePoint(parent1, parent2);
             } else if (crossOption==1){
-                crossoverTwoPoint(parent1, parent2);
+                //crossoverTwoPoint(parent1, parent2);
+                //crossoverOrder
             }
         }
 

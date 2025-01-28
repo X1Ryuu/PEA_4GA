@@ -35,7 +35,8 @@ private:
     int calculateFitness(const vector<int>& path);
 
     void crossoverOnePoint(Individual& parent1, Individual& parent2);
-
+    void crossOverOX(Individual& parent1, Individual& parent2);
+    void crossOverPMX(Individual& parent1, Individual& parent2);
     void crossoverTwoPoint(Individual& parent1, Individual& parent2);
     void mutateInversion(Individual& individual);
     void mutateSwap(Individual& individual);
