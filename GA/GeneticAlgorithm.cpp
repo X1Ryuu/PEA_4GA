@@ -57,7 +57,7 @@ vector<int> GeneticAlgorithm::nearestNeighborHeuristic() {
     vector<bool> visited(size, false);
     uniform_int_distribution<int> gen(0, costMatrix.getSize()-1);
     int currentCity = gen(rng);
-    cout << currentCity << "\n";
+   // cout << currentCity << "\n";
    // int currentCity = 0; // Start od pierwszego miasta
     path.push_back(currentCity);
     visited[currentCity] = true;
@@ -360,15 +360,18 @@ void GeneticAlgorithm::evolve() {
     //for (size_t i = 0; i < populationSize; i += 2) {
     while(newPopulation.size()<populationSize){
         Individual parent1, parent2;
-        if(bestCost/optimal<3){
+        //cout << bestCost << " " << optimal << endl;
+       // cout << fabs(bestCost-optimal)/optimal*100 << endl;
+        if(fabs(bestCost-optimal)/optimal*100<3){
             parent1 = randomSelection();
-            parent2 = randomSelection();
-
+            parent2 = tournamentSelection(5);
         }else{
-            parent1 = tournamentSelection(5);
+            parent1 = randomSelection();
             parent2 = rouletteWheelSelection();
         }
 
+        parent1 = tournamentSelection(5);
+        parent2 = tournamentSelection(5);
 
        // vector<Individual> selected;
      //   tournamentSelection(selected);
@@ -423,7 +426,7 @@ pair<vector<int>, int> GeneticAlgorithm::run(string name) {
 
     string filepath = "../wyniki/" + name + ".csv";
     std::ofstream file(filepath, std::ios_base::app);
-    file << optimal << ";" << mutOption << ";" << crossOption << "\n";
+   // file << optimal << ";" << mutOption << ";" << crossOption << "\n";
     file << "Elapsed time" << ";" << "Relative error" << ";" << "best fitness" << ";" << "optimal" << "\n";
 
     while (std::chrono::duration<double>(std::chrono::steady_clock::now() - startTime).count() < timeLimit) {
@@ -450,8 +453,8 @@ pair<vector<int>, int> GeneticAlgorithm::run(string name) {
         if (elapsedSeconds - prev_elapsed >= 1.0) {
             prev_elapsed = elapsedSeconds;
             file << elapsedSeconds << ";" << relativeError << ";" << bestCost << ";" << optimal <<"\n";
-            cout << relativeError<<", " << elapsedSeconds << ", " << bestCost   <<", "<< best.fitness <<", "<< to_string(crossOption)+
-                                                                                                                 to_string(mutOption)<<"\n\n";
+         //   cout << relativeError<<", " << elapsedSeconds << ", " << bestCost   <<", "<< best.fitness <<", "<< to_string(crossOption)+
+                                                        //                                                         to_string(mutOption)<<"\n\n";
             //cout << "Elapsed time: " << elapsedSeconds << " s" << endl;
         }
       //  cout << "Best fitness: " << best.fitness << endl;
