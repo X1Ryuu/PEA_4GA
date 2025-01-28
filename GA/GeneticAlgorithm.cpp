@@ -35,7 +35,7 @@ void GeneticAlgorithm::filterPopulation() {
     });
 
     // Zachowaj najlepsze 50% osobników
-    int eliteSize = populationSize / 2;
+    int eliteSize = populationSize / 4;
     vector<Individual> newPopulation(population.begin(), population.begin() + eliteSize);
 
     // Uzupełnij populację nowymi losowymi osobnikami
@@ -57,7 +57,7 @@ vector<int> GeneticAlgorithm::nearestNeighborHeuristic() {
     vector<bool> visited(size, false);
     uniform_int_distribution<int> gen(0, costMatrix.getSize()-1);
     int currentCity = gen(rng);
-    //cout << currentCity << "\n";
+    cout << currentCity << "\n";
    // int currentCity = 0; // Start od pierwszego miasta
     path.push_back(currentCity);
     visited[currentCity] = true;
@@ -81,7 +81,41 @@ vector<int> GeneticAlgorithm::nearestNeighborHeuristic() {
 
     return path;
 }
+Individual GeneticAlgorithm::rouletteWheelSelection() {
+    double totalFitness = accumulate(population.begin(), population.end(), 0.0, [](double sum, const Individual& ind) {
+        return sum + (1.0 / ind.fitness); // Odwrócony fitness dla minimalizacji
+    });
+    double randomValue = uniform_real_distribution<double>(0.0, totalFitness)(rng);
+    double cumulative = 0.0;
 
+    for (const auto& ind : population) {
+        cumulative += (1.0 / ind.fitness);
+        if (cumulative >= randomValue) {
+            return ind;
+        }
+    }
+
+    // Zwróć ostatniego osobnika, jeśli coś poszło nie tak
+    return population.back();
+}
+
+/*void GeneticAlgorithm::rouletteWheelSelection(Individual& selected) {
+    double totalFitness = accumulate(population.begin(), population.end(), 0.0, [](double sum, const Individual& ind) {
+        return sum + (1.0 / ind.fitness);
+    });
+
+    uniform_real_distribution<double> dist(0.0, totalFitness);
+    double randomValue = dist(rng);
+    double cumulative = 0.0;
+
+    for (const auto& individual : population) {
+        cumulative += (1.0 / individual.fitness);
+        if (cumulative >= randomValue) {
+            selected = individual;
+            break;
+        }
+    }
+}*/
 
 
 void GeneticAlgorithm::initializePopulation() {
@@ -89,7 +123,7 @@ void GeneticAlgorithm::initializePopulation() {
     uniform_int_distribution<int> dist(0, size - 1);
 
     // Proporcje losowych i heurystycznych osobników
-    int randomIndividuals = populationSize * 0.2;  // 70% losowych
+    int randomIndividuals = populationSize * 0.7;  // 70% losowych
     int heuristicIndividuals = populationSize - randomIndividuals;  // 30% heurystycznych
 
     // Generowanie losowych osobników
@@ -254,6 +288,20 @@ void GeneticAlgorithm::crossOverOX(Individual& parent1, Individual& parent2) {
     parent2.fitness = calculateFitness(parent2.path);
 }
 
+Individual GeneticAlgorithm::tournamentSelection(int tournamentSize) {
+    vector<Individual> tournamentGroup;
+    for (int i = 0; i < tournamentSize; ++i) {
+        int randomIndex = uniform_int_distribution<int>(0, population.size() - 1)(rng);
+        tournamentGroup.push_back(population[randomIndex]);
+    }
+
+    // Wybierz najlepszego z grupy
+    return *min_element(tournamentGroup.begin(), tournamentGroup.end(), [](const Individual& a, const Individual& b) {
+        return a.fitness < b.fitness; // Dla minimalizacji
+    });
+}
+
+
 
 void GeneticAlgorithm::tournamentSelection(vector<Individual>& selected) {
     int tournamentSize = 3; // Liczba osobników biorących udział w turnieju
@@ -268,20 +316,69 @@ void GeneticAlgorithm::tournamentSelection(vector<Individual>& selected) {
         return a.fitness < b.fitness; // Mniejszy koszt (fitness) oznacza lepszy osobnik
     });
 }
-
+Individual GeneticAlgorithm::randomSelection() {
+    int randomIndex = uniform_int_distribution<int>(0, population.size() - 1)(rng);
+    return population[randomIndex];
+}
 
 void GeneticAlgorithm::evolve() {
     vector<Individual> newPopulation;
+/*    for(int city:getBestIndividual().path){
+        cout << city << " ";
+    }
+    cout << getBestIndividual().path[0] << endl;
+    cout << getBestIndividual().fitness << endl;
+    cout << population.begin()->fitness << endl;*/
+/*    sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
+        return a.fitness < b.fitness;
+    });
+   // cout << population.begin()->fitness << endl << endl;
+    // Zachowaj najlepsze 25% osobników
+    int eliteSize = populationSize / 4;
+    vector<Individual> newPopulation(population.begin(), population.begin() + eliteSize);*/
 
-    for (size_t i = 0; i < populationSize; i += 2) {
-        vector<Individual> selected;
-        tournamentSelection(selected);
 
-        Individual parent1 = population[i];
-        Individual parent2 = population[i + 1];
 
-        //printf("%lf, max: %lf, %lf, %lf\n", (double)rng(), rng.max(), crossoverRate, (double)rng() / rng.max());
-        if ((double)rng() / rng.max() < crossoverRate) {
+
+    // Uzupełnij populację nowymi losowymi osobnikami
+/*    for (int i = eliteSize; i < populationSize; ++i) {
+        vector<int> path(costMatrix.getSize());
+        iota(path.begin(), path.end(), 0); // Permutacja: 0, 1, ..., size-1
+        shuffle(path.begin(), path.end(), rng); // Losowe tasowanie
+        newPopulation.push_back({path, calculateFitness(path)});
+    }*/
+
+    sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
+        return a.fitness < b.fitness; // Dla minimalizacji
+    });
+
+    // Dodaj elitę do nowej populacji
+    newPopulation.insert(newPopulation.end(), population.begin(), population.begin() + populationSize/4);
+
+
+
+    //for (size_t i = 0; i < populationSize; i += 2) {
+    while(newPopulation.size()<populationSize){
+        Individual parent1, parent2;
+        if(bestCost/optimal<3){
+            parent1 = randomSelection();
+            parent2 = randomSelection();
+
+        }else{
+            parent1 = tournamentSelection(5);
+            parent2 = rouletteWheelSelection();
+        }
+
+
+       // vector<Individual> selected;
+     //   tournamentSelection(selected);
+        //rouletteWheelSelection(selected);
+
+/*        Individual parent1 = population[i];
+        Individual parent2 = population[i + 1];*/
+        double RNG = (double)rng() / rng.max();
+      //  printf("%lf, max: %lf, %lf, %lf\n", (double)rng(), rng.max(), crossoverRate, RNG);
+        if (RNG < crossoverRate) {
             if (crossOption==0){
                 crossOverOX(parent1, parent2);
             } else if (crossOption==1){
@@ -293,8 +390,9 @@ void GeneticAlgorithm::evolve() {
             mutateInversion(parent1);
             mutateSwap(parent2);
         }*/
-
-        if ((double)rng() / rng.max() < mutationRate) {
+        RNG = (double)rng() / rng.max();
+     //   printf("%lf, max: %lf, %lf, %lf\n", (double)rng(), rng.max(), crossoverRate, RNG);
+        if (RNG < mutationRate) {
             if(mutOption==0){
                 mutateInversion(parent1);
             } else if(mutOption==1){
@@ -315,29 +413,53 @@ Individual GeneticAlgorithm::getBestIndividual() {
     });
 }
 
-pair<vector<int>, int> GeneticAlgorithm::run() {
+pair<vector<int>, int> GeneticAlgorithm::run(string name) {
     initializePopulation();
-
+  //  Best bestBest;
     double elapsedSeconds = 0.0;
+
+    double prev_elapsed=0.0;
     auto startTime = std::chrono::steady_clock::now();
-    std::ofstream file("../wyniki/results090.csv");
+
+    string filepath = "../wyniki/" + name + ".csv";
+    std::ofstream file(filepath, std::ios_base::app);
     file << optimal << ";" << mutOption << ";" << crossOption << "\n";
     file << "Elapsed time" << ";" << "Relative error" << ";" << "best fitness" << ";" << "optimal" << "\n";
+
     while (std::chrono::duration<double>(std::chrono::steady_clock::now() - startTime).count() < timeLimit) {
+
+
         evolve();
 
 
         Individual best = getBestIndividual();
-        double relativeError = std::fabs(best.fitness - optimal) / optimal;
-
+        double relativeError = std::fabs(bestCost - optimal) / optimal * 100;
+      //  cout << relativeError<<", " << elapsedSeconds << ", " << bestBest.fitness   <<", "<< best.fitness <<"\n";
         // Zapisz najlepszy wynik co sekundę
         elapsedSeconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - startTime).count();
         if (relativeErrorData.empty() || elapsedSeconds - relativeErrorData.back().first >= 1.0) {
             relativeErrorData.emplace_back(elapsedSeconds, relativeError);
         }
-        file << elapsedSeconds << ";" << relativeError << ";" << best.fitness << ";" << optimal <<"\n";
+        if (bestCost > best.fitness) {
+            bestPath = best.path;
+            bestCost = best.fitness;
+            //bestBest.fitness = best.fitness;
+            //bestBest.path = best.path;
+        }
+
+        if (elapsedSeconds - prev_elapsed >= 1.0) {
+            prev_elapsed = elapsedSeconds;
+            file << elapsedSeconds << ";" << relativeError << ";" << bestCost << ";" << optimal <<"\n";
+            cout << relativeError<<", " << elapsedSeconds << ", " << bestCost   <<", "<< best.fitness <<", "<< to_string(crossOption)+
+                                                                                                                 to_string(mutOption)<<"\n\n";
+            //cout << "Elapsed time: " << elapsedSeconds << " s" << endl;
+        }
+      //  cout << "Best fitness: " << best.fitness << endl;
+
     }
     file << "\n\n";
+
+ //
     file.close();
 
 /*        for (int gen = 0; gen < generations; ++gen) {
@@ -345,13 +467,18 @@ pair<vector<int>, int> GeneticAlgorithm::run() {
     }*/
 
     Individual best = getBestIndividual();
-    cout << "Best fitness: " << best.fitness << endl;
+    //cout << "Best fitness: " << best.fitness << endl;
+    cout << "Best fitness: " << bestCost << endl;
     cout << "Path: ";
-    for (int city : best.path) {
+/*    for (int city : best.path) {
+        cout << city << " ";
+    }*/
+    for(int city : bestPath){
         cout << city << " ";
     }
     cout << endl;
-    return {best.path, best.fitness};
+    return {bestPath, bestCost};
+    //return {best.path, best.fitness};
 }
 
 

@@ -57,6 +57,7 @@ void test()
 
 
     string file_path[] = {"../tests/ftv47.xml", "../tests/ftv170.xml", "../tests/rbg403.xml"}; // Ścieżka do pliku XML
+    string names[] = {"ftv47", "ftv170", "rbg403"};
     int optimals[] = {1776, 2755, 2465};
     int populacje[] = {100, 200, 300};
     string krzyz[] = {"OX", "2-opt"};
@@ -83,8 +84,9 @@ void test()
 
 
 
-    for(int i=0; i<1; i++)//3 pliki
+    for(int i=0; i<3; i++)//3 pliki
     {
+
         auto graph = Parser::loadGraphFromXML(file_path[i]);
         DynamicMatrix matrix;
         matrix.fromGraph(graph);
@@ -96,7 +98,7 @@ void test()
                     cout << "Populacja: " << populacje[j] << ", Krzyzowanie: " << krzyz[k] << ", Mutacja: " << mut[l] << "\n";
                     GeneticAlgorithm ga(matrix, populacje[j], 0.8, 0.01, k, l, /*(i+3)*60*/(i+1)*120, optimals[i]);
                     // std::cout<<"File: " << i << " iter: "<< k << ", method: " << 0 <<std::endl;
-                    auto [bestPath, bestDistance] = ga.run();
+                    auto [bestPath, bestDistance] = ga.run(names[j]);
                     std::cout << "Najlepsza znaleziona trasa:\n";
                     for (int city : bestPath) {
                         std::cout << city << " -> ";

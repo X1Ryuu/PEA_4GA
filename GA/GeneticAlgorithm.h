@@ -15,6 +15,11 @@ struct Individual {
     int fitness;
 };
 
+struct Best{
+    vector<int> path;
+    int fitness = INT_MAX;
+};
+
 
 class GeneticAlgorithm {
 private:
@@ -26,6 +31,9 @@ private:
     int crossOption;
     int mutOption;
     vector<pair<double, double>> relativeErrorData;
+    double lowestError;
+    int bestCost;
+    vector<int> bestPath;
     double timeLimit;
     int optimal;
     random_device dev;
@@ -35,6 +43,10 @@ private:
     void filterPopulation();
     void crossOver2Opt(Individual& parent1, Individual& parent2);
     int calculateFitness(const vector<int>& path);
+    Individual randomSelection();
+    Individual rouletteWheelSelection();
+    Individual tournamentSelection(int tournamentSize);
+    void rouletteWheelSelection(Individual& selected);
     vector<int> nearestNeighborHeuristic();
     void crossoverOnePoint(Individual& parent1, Individual& parent2);
     void crossOverOX(Individual& parent1, Individual& parent2);
@@ -47,9 +59,11 @@ private:
     void tournamentSelection(vector<Individual>& selected);
 public:
     GeneticAlgorithm(const DynamicMatrix& matrix, int popSize, double crossRate, double mutRate, int crossChoice, int mutChoice, double timeLimit, int optimal)
-            : costMatrix(matrix), populationSize(popSize), crossoverRate(crossRate), mutationRate(mutRate), rng(dev()), crossOption(crossChoice), mutOption(mutChoice), timeLimit(timeLimit), optimal(optimal) {}
+            : costMatrix(matrix), populationSize(popSize), crossoverRate(crossRate), mutationRate(mutRate), rng(dev()), crossOption(crossChoice), mutOption(mutChoice), timeLimit(timeLimit), optimal(optimal) {
+        bestCost = INT_MAX;
+    }
 
-    pair<vector<int>, int> run();
+    pair<vector<int>, int> run(string name);
 };
 
 
