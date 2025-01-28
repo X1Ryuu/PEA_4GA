@@ -28,12 +28,14 @@ private:
     vector<pair<double, double>> relativeErrorData;
     double timeLimit;
     int optimal;
-    random_device rd;
+    random_device dev;
     mt19937 rng;
+    //uniform_int_distribution<double> gen(0, 1);
     void initializePopulation();
-
+    void filterPopulation();
+    void crossOver2Opt(Individual& parent1, Individual& parent2);
     int calculateFitness(const vector<int>& path);
-
+    vector<int> nearestNeighborHeuristic();
     void crossoverOnePoint(Individual& parent1, Individual& parent2);
     void crossOverOX(Individual& parent1, Individual& parent2);
     void crossOverPMX(Individual& parent1, Individual& parent2);
@@ -42,9 +44,10 @@ private:
     void mutateSwap(Individual& individual);
     void evolve();
     Individual getBestIndividual();
+    void tournamentSelection(vector<Individual>& selected);
 public:
     GeneticAlgorithm(const DynamicMatrix& matrix, int popSize, double crossRate, double mutRate, int crossChoice, int mutChoice, double timeLimit, int optimal)
-            : costMatrix(matrix), populationSize(popSize), crossoverRate(crossRate), mutationRate(mutRate), rng(rd()), crossOption(crossChoice), mutOption(mutChoice), timeLimit(timeLimit), optimal(optimal) {}
+            : costMatrix(matrix), populationSize(popSize), crossoverRate(crossRate), mutationRate(mutRate), rng(dev()), crossOption(crossChoice), mutOption(mutChoice), timeLimit(timeLimit), optimal(optimal) {}
 
     pair<vector<int>, int> run();
 };

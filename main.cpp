@@ -38,7 +38,7 @@ void readConfig()
 
 void test()
 {
-    // 1plik
+    // 3 plik
     // 2 krzyżowania
     // 2 mutacje
     // a) 3 wielkości populacji, dla wsp. krzyżowania 0.8, dla wsp. mutacji 0.01, dla czasu 120 sek.
@@ -58,7 +58,11 @@ void test()
 
     string file_path[] = {"../tests/ftv47.xml", "../tests/ftv170.xml", "../tests/rbg403.xml"}; // Ścieżka do pliku XML
     int optimals[] = {1776, 2755, 2465};
-
+    int populacje[] = {100, 200, 300};
+    string krzyz[] = {"OX", "2-opt"};
+    string mut[] = {"inversion", "swap"};
+    double krzyzowania[] = {0.5, 0.7, 0.9};
+    double mutacje[] = {0.01, 0.05, 0.1};
     for(int i : optimals){
         cout << "i: " << i << endl;
     }
@@ -79,7 +83,7 @@ void test()
 
 
 
-    for(int i=0; i<3; i++)//3 pliki
+    for(int i=0; i<1; i++)//3 pliki
     {
         auto graph = Parser::loadGraphFromXML(file_path[i]);
         DynamicMatrix matrix;
@@ -87,19 +91,25 @@ void test()
         cout << matrix.getSize()<<"\n\n";
         for(int j = 0; j < 3; j++)
         {
-            for(int k=0; k<5; k++)
-            {
-                GeneticAlgorithm ga(matrix, 100, 0.8, 0.01, 1, 2, 120, 0);
-                std::cout<<"File: " << i << " iter: "<< k << ", method: " << 0 <<std::endl;
-                auto [bestPath, bestDistance] = ga.run();
-                std::cout << "Najlepsza znaleziona trasa:\n";
-                for (int city : bestPath) {
-                    std::cout << city << " -> ";
+            for(int k = 0; k < 2; k++){
+                for(int l = 0; l < 2; l++){
+                    cout << "Populacja: " << populacje[j] << ", Krzyzowanie: " << krzyz[k] << ", Mutacja: " << mut[l] << "\n";
+                    GeneticAlgorithm ga(matrix, populacje[j], 0.8, 0.01, k, l, /*(i+3)*60*/(i+1)*120, optimals[i]);
+                    // std::cout<<"File: " << i << " iter: "<< k << ", method: " << 0 <<std::endl;
+                    auto [bestPath, bestDistance] = ga.run();
+                    std::cout << "Najlepsza znaleziona trasa:\n";
+                    for (int city : bestPath) {
+                        std::cout << city << " -> ";
+                    }
+                    std::cout << bestPath[0] << std::endl;
+                    std::cout << "Calkowita dlugosc trasy: " << bestDistance << std::endl;
+                    std::cout << "Blad wzgledny [%]: " << std::fabs(bestDistance - optimals[i]) / optimals[i] * 100 << std::endl;
+                    cout << "\n\n";
                 }
-                std::cout << bestPath[0] << std::endl;
-                std::cout << "Calkowita dlugosc trasy: " << bestDistance << std::endl;
-                std::cout << "Blad wzgledny [%]: " << std::fabs(bestDistance - optimals[i]) / optimals[i] * 100 << std::endl;
             }
+
+
+
         }
     }
 
@@ -117,6 +127,7 @@ int main(){
 
     std::uniform_int_distribution<mt19937::result_type> dis(0, 6 - 1);
     printf("%d, %d", dis(rng), dis(rng));
+    test();
     return 0;
 }
 
