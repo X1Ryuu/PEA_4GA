@@ -112,7 +112,7 @@ void test()
                     file.close();
 
                     cout << "Populacja: " << populacje[j] << ", Krzyzowanie: " << krzyz[k] << ", Mutacja: " << mut[l] << "\n";
-                    GeneticAlgorithm ga(matrix, populacje[j], 0.8, 0.01, k, l, /*(i+3)*60*/(i+1)*5, optimals[i]);
+                    GeneticAlgorithm ga(matrix, populacje[j], 0.8, 0.01, k, l, /*(i+3)*60*/(i+1)*120, optimals[i]);
                     // std::cout<<"File: " << i << " iter: "<< k << ", method: " << 0 <<std::endl;
                     auto [bestPath, bestDistance] = ga.run(names[i]);
                     std::cout << "Najlepsza znaleziona trasa:\n";
@@ -179,7 +179,7 @@ void test()
                     file.close();
 
                     cout << "Populacja: " << populacje[minIndex[i]] << ", Krzyzowanie: " << krzyz[j] << ", Mutacja: " << mut[k]<< ", Wsp mutacji: " << mutacje[l] << "\n";
-                    GeneticAlgorithm ga(matrix, populacje[minIndex[i]], 0.8, mutacje[l], j, k, /*(i+3)*60*/(i+1)*5, optimals[i]);
+                    GeneticAlgorithm ga(matrix, populacje[minIndex[i]], 0.8, mutacje[l], j, k, /*(i+3)*60*/(i+1)*120, optimals[i]);
                     // std::cout<<"File: " << i << " iter: "<< k << ", method: " << 0 <<std::endl;
                     auto [bestPath, bestDistance] = ga.run(names[i]+"Krzyzowanie");
                     std::cout << "Najlepsza znaleziona trasa:\n";
@@ -225,7 +225,7 @@ void test()
                     file.close();
 
                     cout << "Populacja: " << populacje[minIndex[i]] << ", Krzyzowanie: " << krzyz[k] << ", Mutacja: " << mut[j]<< ", Wsp krzyzowania: " << krzyzowania[l] << "\n";
-                    GeneticAlgorithm ga(matrix, populacje[minIndex[i]], krzyzowania[l], 0.01, j, k, /*(i+3)*60*/(i+1)*5, optimals[i]);
+                    GeneticAlgorithm ga(matrix, populacje[minIndex[i]], krzyzowania[l], 0.01, j, k, /*(i+3)*60*/(i+1)*120, optimals[i]);
                     // std::cout<<"File: " << i << " iter: "<< k << ", method: " << 0 <<std::endl;
                     auto [bestPath, bestDistance] = ga.run(names[i]+"Mutacja");
                     std::cout << "Najlepsza znaleziona trasa:\n";
