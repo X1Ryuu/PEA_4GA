@@ -1,5 +1,8 @@
 inputFileName=ftv47.xml
-coolingRate=1.1
-optimal=10
-timeLimit=1.1
-choice=10
+optimal=1776
+population=100
+crossRate=0.8
+mutationRate=0.01
+crossChoice=1
+mutChoice=0
+timeLimit=60

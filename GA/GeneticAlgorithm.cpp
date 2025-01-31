@@ -7,6 +7,9 @@
 #include <iostream>
 #include <fstream>
 #include "GeneticAlgorithm.h"
+
+#include <unordered_map>
+#include <unordered_set>
 using namespace std;
 
 
@@ -57,8 +60,7 @@ vector<int> GeneticAlgorithm::nearestNeighborHeuristic() {
     vector<bool> visited(size, false);
     uniform_int_distribution<int> gen(0, costMatrix.getSize()-1);
     int currentCity = gen(rng);
-   // cout << currentCity << "\n";
-   // int currentCity = 0; // Start od pierwszego miasta
+
     path.push_back(currentCity);
     visited[currentCity] = true;
 
@@ -288,6 +290,98 @@ void GeneticAlgorithm::crossOverOX(Individual& parent1, Individual& parent2) {
     parent2.fitness = calculateFitness(parent2.path);
 }
 
+
+void GeneticAlgorithm::crossOverCX(Individual& parent1, Individual& parent2) {
+    int size = parent1.path.size();
+    vector<int> child(size, -1);
+    vector<bool> visited(size, false);
+
+    int start = 0;
+    int current = parent1.path[start];
+
+    // Tworzymy cykl z pierwszego rodzica
+    while (!visited[current]) {
+        visited[current] = true;
+        child[current] = parent1.path[current];
+
+        // Znajdujemy indeks tego miasta w drugim rodzicu
+        int index = find(parent2.path.begin(), parent2.path.end(), parent1.path[current]) - parent2.path.begin();
+        current = parent1.path[index];
+    }
+
+    // Wypełniamy pozostałe pozycje danymi z drugiego rodzica
+    for (int i = 0; i < size; i++) {
+        if (child[i] == -1) {
+            child[i] = parent2.path[i];
+        }
+    }
+
+    // Aktualizacja osobnika
+    parent1.path = child;
+    parent1.fitness = calculateFitness(parent1.path);
+}
+
+
+
+void GeneticAlgorithm::crossOverERX(Individual& parent1, Individual& parent2) {
+    int size = parent1.path.size();
+    unordered_map<int, unordered_set<int>> adjacencyList;
+
+    // Tworzenie listy sąsiedztwa dla obu rodziców
+    auto addEdge = [&](int a, int b) {
+        adjacencyList[a].insert(b);
+        adjacencyList[b].insert(a);
+    };
+
+    for (int i = 0; i < size; ++i) {
+        int next = (i + 1) % size;
+        addEdge(parent1.path[i], parent1.path[next]);
+        addEdge(parent2.path[i], parent2.path[next]);
+    }
+
+    vector<int> child(size, -1);
+    unordered_set<int> used;
+
+    // Wybór początkowego miasta losowo
+    int current = parent1.path[uniform_int_distribution<int>(0, size - 1)(rng)];
+    child[0] = current;
+    used.insert(current);
+
+    for (int i = 1; i < size; ++i) {
+        // Usuwamy bieżące miasto z list sąsiedztwa
+        for (auto& [key, neighbors] : adjacencyList) {
+            neighbors.erase(current);
+        }
+
+        // Wybieramy następne miasto
+        int nextCity = -1;
+        if (!adjacencyList[current].empty()) {
+            // Znajdź miasto z najmniejszą liczbą sąsiadów
+            nextCity = *min_element(
+                adjacencyList[current].begin(),
+                adjacencyList[current].end(),
+                [&](int a, int b) { return adjacencyList[a].size() < adjacencyList[b].size(); }
+            );
+        } else {
+            // Jeśli nie ma dostępnych sąsiadów, wybierz losowe nieużyte miasto
+            for (int city : parent1.path) {
+                if (used.find(city) == used.end()) {
+                    nextCity = city;
+                    break;
+                }
+            }
+        }
+
+        child[i] = nextCity;
+        used.insert(nextCity);
+        current = nextCity;
+    }
+
+    parent1.path = child;
+    parent1.fitness = calculateFitness(parent1.path);
+}
+
+
 Individual GeneticAlgorithm::tournamentSelection(int tournamentSize) {
     vector<Individual> tournamentGroup;
     for (int i = 0; i < tournamentSize; ++i) {
@@ -297,7 +391,7 @@ Individual GeneticAlgorithm::tournamentSelection(int tournamentSize) {
 
     // Wybierz najlepszego z grupy
     return *min_element(tournamentGroup.begin(), tournamentGroup.end(), [](const Individual& a, const Individual& b) {
-        return a.fitness < b.fitness; // Dla minimalizacji
+        return a.fitness < b.fitness;
     });
 }
 
@@ -323,6 +417,7 @@ Individual GeneticAlgorithm::randomSelection() {
 
 void GeneticAlgorithm::evolve() {
     vector<Individual> newPopulation;
+    vector<Individual> tempPop;
 /*    for(int city:getBestIndividual().path){
         cout << city << " ";
     }
@@ -349,27 +444,29 @@ void GeneticAlgorithm::evolve() {
     }*/
 
     sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
-        return a.fitness < b.fitness; // Dla minimalizacji
+        return a.fitness < b.fitness;
     });
 
-    // Dodaj elitę do nowej populacji
     newPopulation.insert(newPopulation.end(), population.begin(), population.begin() + populationSize/4);
+
+
+
+
+
+
+    /*sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
+        return a.fitness > b.fitness;
+    });*/
+
+
+
 
 
 
     //for (size_t i = 0; i < populationSize; i += 2) {
     while(newPopulation.size()<populationSize){
+     //   cout << populationSize << "\n";
         Individual parent1, parent2;
-        //cout << bestCost << " " << optimal << endl;
-       // cout << fabs(bestCost-optimal)/optimal*100 << endl;
-        if(fabs(bestCost-optimal)/optimal*100<3){
-            parent1 = randomSelection();
-            parent2 = tournamentSelection(5);
-        }else{
-            parent1 = randomSelection();
-            parent2 = rouletteWheelSelection();
-        }
-
         parent1 = tournamentSelection(5);
         parent2 = tournamentSelection(5);
 
@@ -385,7 +482,9 @@ void GeneticAlgorithm::evolve() {
             if (crossOption==0){
                 crossOverOX(parent1, parent2);
             } else if (crossOption==1){
-                crossOver2Opt(parent1, parent2);
+
+                crossOverPMX(parent1, parent2);
+
             }
         }
 
@@ -452,9 +551,9 @@ pair<vector<int>, int> GeneticAlgorithm::run(string name) {
 
         if (elapsedSeconds - prev_elapsed >= 1.0) {
             prev_elapsed = elapsedSeconds;
-            file << elapsedSeconds << ";" << relativeError << ";" << bestCost << ";" << optimal <<"\n";
-         //   cout << relativeError<<", " << elapsedSeconds << ", " << bestCost   <<", "<< best.fitness <<", "<< to_string(crossOption)+
-                                                        //                                                         to_string(mutOption)<<"\n\n";
+         //   file << elapsedSeconds << ";" << relativeError << ";" << bestCost << ";" << optimal <<"\n";
+            cout << relativeError<<", " << elapsedSeconds << ", " << bestCost   <<", "<< best.fitness <<", "<< to_string(crossOption)+
+                                                                                                                 to_string(mutOption)<<"\n\n";
             //cout << "Elapsed time: " << elapsedSeconds << " s" << endl;
         }
       //  cout << "Best fitness: " << best.fitness << endl;
@@ -471,15 +570,15 @@ pair<vector<int>, int> GeneticAlgorithm::run(string name) {
 
     Individual best = getBestIndividual();
     //cout << "Best fitness: " << best.fitness << endl;
-    cout << "Best fitness: " << bestCost << endl;
-    cout << "Path: ";
+    /*cout << "Best fitness: " << bestCost << endl;
+    cout << "Path: ";*/
 /*    for (int city : best.path) {
         cout << city << " ";
     }*/
-    for(int city : bestPath){
+    /*for(int city : bestPath){
         cout << city << " ";
     }
-    cout << endl;
+    cout << endl;*/
     return {bestPath, bestCost};
     //return {best.path, best.fitness};
 }

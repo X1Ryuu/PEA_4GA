@@ -15,10 +15,14 @@ void readConfig()
     map<std::string, std::string> config = readConfigFile("config.txt");
 
     string fileName = config["inputFileName"];
-    double coolRate = std::stod(config["coolingRate"]);
-    int optimal = std::stoi(config["optimal"]);
-    double timeLimit = std::stod(config["timeLimit"]);
-    int choice = std::stoi(config["choice"]);
+    int optimal=std::stoi(config["optimal"]);
+    int population=std::stoi(config["population"]);
+    double crossRate=std::stod(config["crossRate"]);
+    double mutationRate=std::stod(config["mutationRate"]);
+    int crossChoice=std::stoi(config["crossChoice"]);
+    int mutChoice=std::stoi(config["mutChoice"]);
+    double timeLimit=std::stod(config["timeLimit"]);
+
 
  //   printf("%s\n, %lf, %d, %lf, %d", fileName.c_str(), coolRate, optimal, timeLimit, choice);
 
@@ -28,9 +32,15 @@ void readConfig()
     matrix.fromGraph(graph);
   //  GeneticAlgorithm algorithm(matrix, 100, 0.8, 0.01, 0, 120);
     //matrix.print();
-
-
-
+    GeneticAlgorithm ga(matrix, population, crossRate, mutationRate, crossChoice, mutChoice, timeLimit, optimal);
+    auto [bestPath, bestDistance] = ga.run("stand_ftv47");
+    for (int city : bestPath) {
+        std::cout << city << " -> ";
+    }
+    std::cout << bestPath[0] << std::endl;
+    std::cout << "Calkowita dlugosc trasy: " << bestDistance << std::endl;
+    std::cout << "Blad wzgledny [%]: " << std::fabs(bestDistance - optimal) / optimal * 100 << std::endl;
+    cout << "\n\n";
 }
 
 
@@ -87,7 +97,7 @@ void test()
 
 
 
-    for(int i=2; i<3; i++)//3 pliki
+    for(int i=0; i<2; i++)//3 pliki
     {
         string filepath = "../wyniki/" + names[i] + ".csv";
         std::ofstream file(filepath, std::ios_base::app);
@@ -153,7 +163,7 @@ void test()
 
 
 
-    for(int i=2; i<3; i++)//3 pliki
+    for(int i=0; i<2; i++)//3 pliki
     {
         string filepath = "../wyniki/" + names[i] + "Krzyzowanie.csv";
         std::ofstream file(filepath, std::ios_base::app);
@@ -199,7 +209,7 @@ void test()
 
 
 
-    for(int i=2; i<3; i++)//3 pliki
+    for(int i=0; i<2; i++)//3 pliki
     {
         string filepath = "../wyniki/" + names[i] + "Mutacja.csv";
         std::ofstream file(filepath, std::ios_base::app);
@@ -251,13 +261,13 @@ void test()
 
 int main(){
     readConfig();
-    std::cout << "Hello, World!" << std::endl;
+    /*std::cout << "Hello, World!" << std::endl;
     random_device dev;
     mt19937 rng(dev());
 
     std::uniform_int_distribution<mt19937::result_type> dis(0, 6 - 1);
-    printf("%d, %d", dis(rng), dis(rng));
-    test();
+    printf("%d, %d", dis(rng), dis(rng));*/
+   // test();
     return 0;
 }
 

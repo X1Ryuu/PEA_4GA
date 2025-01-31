@@ -54,7 +54,9 @@ private:
     void crossoverTwoPoint(Individual& parent1, Individual& parent2);
     void mutateInversion(Individual& individual);
     void mutateSwap(Individual& individual);
+    void crossOverERX(Individual& parent1, Individual& parent2);
     void evolve();
+    void crossOverCX(Individual& parent1, Individual& parent2);
     Individual getBestIndividual();
     void tournamentSelection(vector<Individual>& selected);
 public:
