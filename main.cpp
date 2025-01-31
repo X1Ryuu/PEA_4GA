@@ -4,6 +4,7 @@
 #include <map>
 #include <fstream>
 #include <conio.h>
+#include <unordered_map>
 #include "Utils/Parser.h"
 #include "Matrix/DynamicMatrix.h"
 #include "Utils/Utils.h"
@@ -24,7 +25,7 @@ void readConfig()
     double timeLimit=std::stod(config["timeLimit"]);
 
 
- //   printf("%s\n, %lf, %d, %lf, %d", fileName.c_str(), coolRate, optimal, timeLimit, choice);
+    printf("%s, %d, %d, %lf, %lf, %d, %d, %lf\n", fileName.c_str(), optimal, population, crossRate, mutationRate, crossChoice, mutChoice, timeLimit);
 
 
     auto graph = Parser::loadGraphFromXML(fileName);
@@ -32,7 +33,7 @@ void readConfig()
     matrix.fromGraph(graph);
   //  GeneticAlgorithm algorithm(matrix, 100, 0.8, 0.01, 0, 120);
     //matrix.print();
-    GeneticAlgorithm ga(matrix, population, crossRate, mutationRate, crossChoice, mutChoice, timeLimit, optimal);
+    GeneticAlgorithm ga(matrix, population, crossRate, mutationRate,  mutChoice, timeLimit, optimal);
     auto [bestPath, bestDistance] = ga.run("stand_ftv47");
     for (int city : bestPath) {
         std::cout << city << " -> ";
@@ -42,6 +43,7 @@ void readConfig()
     std::cout << "Blad wzgledny [%]: " << std::fabs(bestDistance - optimal) / optimal * 100 << std::endl;
     cout << "\n\n";
 }
+
 
 
 
@@ -70,7 +72,6 @@ void test()
     string names[] = {"ftv47", "ftv170", "rbg403"};
     int optimals[] = {1776, 2755, 2465};
     int populacje[] = {100, 200, 300};
-    string krzyz[] = {"OX", "2-opt"};
     string mut[] = {"inversion", "swap"};
     double krzyzowania[] = {0.5, 0.7, 0.9};
     double mutacje[] = {0.01, 0.05, 0.1};
@@ -113,16 +114,16 @@ void test()
         cout << matrix.getSize()<<"\n\n";
         for(int j = 0; j < 3; j++)
         {
-            for(int k = 0; k < 2; k++){//2
+
                 for(int l = 0; l < 2; l++){//2
                     string filepath = "../wyniki/" + names[i] + ".csv";
                     std::ofstream file(filepath, std::ios_base::app);
 
-                    file << "Populacja"<< ";" << populacje[j]<< ";"  << "Krzyzowanie" << ";" << krzyz[k] << ";" << "Mutacja" << ";" << mut[l] << "\n";
+                    file << "Populacja"<< ";" << populacje[j]<< ";"  << "Krzyzowanie" << ";" << 0 << ";" << "Mutacja" << ";" << mut[l] << "\n";
                     file.close();
 
-                    cout << "Populacja: " << populacje[j] << ", Krzyzowanie: " << krzyz[k] << ", Mutacja: " << mut[l] << "\n";
-                    GeneticAlgorithm ga(matrix, populacje[j], 0.8, 0.01, k, l, /*(i+3)*60*/(i+1)*120, optimals[i]);
+                    cout << "Populacja: " << populacje[j]  << ", Mutacja: " << mut[l] << "\n";
+                    GeneticAlgorithm ga(matrix, populacje[j], 0.8, 0.01, l, /*(i+3)*60*/(i+1)*120, optimals[i]);
                     // std::cout<<"File: " << i << " iter: "<< k << ", method: " << 0 <<std::endl;
                     auto [bestPath, bestDistance] = ga.run(names[i]);
                     std::cout << "Najlepsza znaleziona trasa:\n";
@@ -136,8 +137,8 @@ void test()
 
                     sredniError[i][j] += std::fabs(bestDistance - optimals[i]) / optimals[i] * 100;
                 }
-            }
-        sredniError[i][j] = sredniError[i][j]/4;
+
+        sredniError[i][j] = sredniError[i][j]/2;
         }
     }
 
@@ -177,19 +178,18 @@ void test()
         DynamicMatrix matrix;
         matrix.fromGraph(graph);
         cout << matrix.getSize()<<"\n\n";
-        for(int j = 0; j < 2; j++)//dla populacji dla krzyżowania
-        {
+
             for(int k = 0; k < 2; k++){//2 dla mutacji
                 for(int l = 0; l < 3; l++){//2 dla wartosci mutacji
                     string filepath = "../wyniki/" + names[i] + "Krzyzowanie.csv";
                     std::ofstream file(filepath, std::ios_base::app);
 
-                    file << "Populacja"<< ";" << populacje[minIndex[i]]<< ";"  << "Krzyzowanie" << ";" << krzyz[j] << ";"
+                    file << "Populacja"<< ";" << populacje[minIndex[i]]<< ";"  << "Krzyzowanie" << ";" << 0 << ";"
                     << "Mutacja" << ";" << mut[k] << ";" << "Wsp mutacji" << ";" << mutacje[l]<< "\n";
                     file.close();
 
-                    cout << "Populacja: " << populacje[minIndex[i]] << ", Krzyzowanie: " << krzyz[j] << ", Mutacja: " << mut[k]<< ", Wsp mutacji: " << mutacje[l] << "\n";
-                    GeneticAlgorithm ga(matrix, populacje[minIndex[i]], 0.8, mutacje[l], j, k, /*(i+3)*60*/(i+1)*120, optimals[i]);
+                    cout << "Populacja: " << populacje[minIndex[i]]  << ", Mutacja: " << mut[k]<< ", Wsp mutacji: " << mutacje[l] << "\n";
+                    GeneticAlgorithm ga(matrix, populacje[minIndex[i]], 0.8, mutacje[l],  k, /*(i+3)*60*/(i+1)*120, optimals[i]);
                     // std::cout<<"File: " << i << " iter: "<< k << ", method: " << 0 <<std::endl;
                     auto [bestPath, bestDistance] = ga.run(names[i]+"Krzyzowanie");
                     std::cout << "Najlepsza znaleziona trasa:\n";
@@ -201,9 +201,9 @@ void test()
                     std::cout << "Blad wzgledny [%]: " << std::fabs(bestDistance - optimals[i]) / optimals[i] * 100 << std::endl;
                     cout << "\n\n";
 
-                    sredniError[i][j] += std::fabs(bestDistance - optimals[i]) / optimals[i] * 100;
+                  //  sredniError[i][j] += std::fabs(bestDistance - optimals[i]) / optimals[i] * 100;
                 }
-            }
+
         }
     }
 
@@ -225,17 +225,17 @@ void test()
         cout << matrix.getSize()<<"\n\n";
         for(int j = 0; j < 2; j++)//dla populacji dla mutacji
         {
-            for(int k = 0; k < 2; k++){//2 dla krzyżowania
+
                 for(int l = 0; l < 3; l++){//2 dla wartosci krzyżowania
                     string filepath = "../wyniki/" + names[i] + "Mutacja.csv";
                     std::ofstream file(filepath, std::ios_base::app);
 
-                    file << "Populacja"<< ";" << populacje[minIndex[i]]<< ";"  << "Krzyzowanie" << ";" << krzyz[k] << ";"
+                    file << "Populacja"<< ";" << populacje[minIndex[i]]<< ";"  << "Krzyzowanie" << ";" << 0 << ";"
                          << "Mutacja" << ";" << mut[j] << ";" << "Wsp krzyzowania" << ";" << krzyzowania[l]<< "\n";
                     file.close();
 
-                    cout << "Populacja: " << populacje[minIndex[i]] << ", Krzyzowanie: " << krzyz[k] << ", Mutacja: " << mut[j]<< ", Wsp krzyzowania: " << krzyzowania[l] << "\n";
-                    GeneticAlgorithm ga(matrix, populacje[minIndex[i]], krzyzowania[l], 0.01, j, k, /*(i+3)*60*/(i+1)*120, optimals[i]);
+                    cout << "Populacja: " << populacje[minIndex[i]]  << ", Mutacja: " << mut[j]<< ", Wsp krzyzowania: " << krzyzowania[l] << "\n";
+                    GeneticAlgorithm ga(matrix, populacje[minIndex[i]], krzyzowania[l], 0.01, j, /*(i+3)*60*/(i+1)*120, optimals[i]);
                     // std::cout<<"File: " << i << " iter: "<< k << ", method: " << 0 <<std::endl;
                     auto [bestPath, bestDistance] = ga.run(names[i]+"Mutacja");
                     std::cout << "Najlepsza znaleziona trasa:\n";
@@ -248,7 +248,7 @@ void test()
                     cout << "\n\n";
 
                 }
-            }
+
         }
     }
 
@@ -260,14 +260,22 @@ void test()
 
 
 int main(){
-    readConfig();
+//    unordered_map<int, int> mapping;
+//    mapping[3] = 6;
+//    mapping[4] = 9;
+//    mapping[5] = 2;
+//    mapping[6] = 1;
+//    printf("%zu, %zu, %zu", mapping.count(3), mapping.count(6), mapping.count(1));
+ //   neu();
+
+  //  readConfig();
     /*std::cout << "Hello, World!" << std::endl;
     random_device dev;
     mt19937 rng(dev());
 
     std::uniform_int_distribution<mt19937::result_type> dis(0, 6 - 1);
     printf("%d, %d", dis(rng), dis(rng));*/
-   // test();
+    test();
     return 0;
 }
 

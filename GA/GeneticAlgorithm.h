@@ -50,21 +50,23 @@ private:
     vector<int> nearestNeighborHeuristic();
     void crossoverOnePoint(Individual& parent1, Individual& parent2);
     void crossOverOX(Individual& parent1, Individual& parent2);
+    void crossOverCX(Individual& parent1, Individual& parent2);
     void crossOverPMX(Individual& parent1, Individual& parent2);
     void crossoverTwoPoint(Individual& parent1, Individual& parent2);
     void mutateInversion(Individual& individual);
     void mutateSwap(Individual& individual);
     void crossOverERX(Individual& parent1, Individual& parent2);
     void evolve();
-    void crossOverCX(Individual& parent1, Individual& parent2);
     Individual getBestIndividual();
     void tournamentSelection(vector<Individual>& selected);
 public:
-    GeneticAlgorithm(const DynamicMatrix& matrix, int popSize, double crossRate, double mutRate, int crossChoice, int mutChoice, double timeLimit, int optimal)
-            : costMatrix(matrix), populationSize(popSize), crossoverRate(crossRate), mutationRate(mutRate), rng(dev()), crossOption(crossChoice), mutOption(mutChoice), timeLimit(timeLimit), optimal(optimal) {
+    GeneticAlgorithm(const DynamicMatrix& matrix, int popSize, double crossRate, double mutRate, int mutChoice, double timeLimit, int optimal)
+            : costMatrix(matrix), populationSize(popSize), crossoverRate(crossRate), mutationRate(mutRate), rng(dev()), mutOption(mutChoice), timeLimit(timeLimit), optimal(optimal) {
         bestCost = INT_MAX;
     }
 
+    GeneticAlgorithm(){bestCost = INT_MAX;};
+   // void crossOverPMX(Individual& parent1, Individual& parent2);
     pair<vector<int>, int> run(string name);
 };
 

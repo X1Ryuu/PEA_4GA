@@ -15,20 +15,6 @@ using namespace std;
 
 
 
-/*void GeneticAlgorithm::initializePopulation() {
-    int size = costMatrix.getSize();
-    uniform_int_distribution<int> dist(0, size - 1);
-
-    for (int i = 0; i < populationSize; ++i) {
-        vector<int> path(size);
-        iota(path.begin(), path.end(), 0); // Initialize with 0, 1, ..., size-1
-        shuffle(path.begin(), path.end(), rng);
-
-        population.push_back({path, calculateFitness(path)});
-        *//*int fitness = calculateFitness(path);
-        population.push_back({path, fitness});*//*
-    }
-}*/
 
 
 void GeneticAlgorithm::filterPopulation() {
@@ -37,7 +23,7 @@ void GeneticAlgorithm::filterPopulation() {
         return a.fitness < b.fitness;
     });
 
-    // Zachowaj najlepsze 50% osobników
+    // Zachowaj najlepsze 25% osobników
     int eliteSize = populationSize / 4;
     vector<Individual> newPopulation(population.begin(), population.begin() + eliteSize);
 
@@ -83,41 +69,8 @@ vector<int> GeneticAlgorithm::nearestNeighborHeuristic() {
 
     return path;
 }
-Individual GeneticAlgorithm::rouletteWheelSelection() {
-    double totalFitness = accumulate(population.begin(), population.end(), 0.0, [](double sum, const Individual& ind) {
-        return sum + (1.0 / ind.fitness); // Odwrócony fitness dla minimalizacji
-    });
-    double randomValue = uniform_real_distribution<double>(0.0, totalFitness)(rng);
-    double cumulative = 0.0;
 
-    for (const auto& ind : population) {
-        cumulative += (1.0 / ind.fitness);
-        if (cumulative >= randomValue) {
-            return ind;
-        }
-    }
 
-    // Zwróć ostatniego osobnika, jeśli coś poszło nie tak
-    return population.back();
-}
-
-/*void GeneticAlgorithm::rouletteWheelSelection(Individual& selected) {
-    double totalFitness = accumulate(population.begin(), population.end(), 0.0, [](double sum, const Individual& ind) {
-        return sum + (1.0 / ind.fitness);
-    });
-
-    uniform_real_distribution<double> dist(0.0, totalFitness);
-    double randomValue = dist(rng);
-    double cumulative = 0.0;
-
-    for (const auto& individual : population) {
-        cumulative += (1.0 / individual.fitness);
-        if (cumulative >= randomValue) {
-            selected = individual;
-            break;
-        }
-    }
-}*/
 
 
 void GeneticAlgorithm::initializePopulation() {
@@ -155,77 +108,10 @@ int GeneticAlgorithm::calculateFitness(const vector<int>& path) {
 
 
 
-void GeneticAlgorithm::crossOver2Opt(Individual& parent1, Individual& parent2) {
-    // Make a copy of the parents' paths
-    vector<int> child1 = parent1.path;
-    vector<int> child2 = parent2.path;
-
-    // Randomly select two indices for the 2-opt operation
-    uniform_int_distribution<int> dist(0, parent1.path.size() - 1);
-    int i = dist(rng);
-    int j = dist(rng);
-
-    if (i > j) swap(i, j);
-
-    // Apply the 2-opt swap
-    reverse(child1.begin() + i, child1.begin() + j + 1);
-
-    // Recalculate fitness for the children
-    parent1.path = child1;
-    parent1.fitness = calculateFitness(parent1.path);
-    parent2.path = child2;
-    parent2.fitness = calculateFitness(parent2.path);
-}
-
-
-void GeneticAlgorithm::crossOverPMX(Individual& parent1, Individual& parent2)
-{
-    random_device dev;
-    mt19937 rng(dev());
-
-    std::uniform_int_distribution<mt19937::result_type> dis(0, costMatrix.getSize() - 1);
-}
 
 
 
-void GeneticAlgorithm::crossoverOnePoint(Individual& parent1, Individual& parent2) {
-    uniform_int_distribution<int> dist(1, parent1.path.size() - 2);
-    int point = dist(rng);
 
-    vector<int> child1 = parent1.path;
-    vector<int> child2 = parent2.path;
-
-    for (int i = 0; i < point; ++i) {
-        swap(child1[i], child2[i]);
-    }
-
-    parent1.path = child1;
-    parent2.path = child2;
-
-    parent1.fitness = calculateFitness(parent1.path);
-    parent2.fitness = calculateFitness(parent2.path);
-}
-
-void GeneticAlgorithm::crossoverTwoPoint(Individual& parent1, Individual& parent2) {
-    uniform_int_distribution<int> dist(1, parent1.path.size() - 2);
-    int point1 = dist(rng);
-    int point2 = dist(rng);
-
-    if (point1 > point2) swap(point1, point2);
-
-    vector<int> child1 = parent1.path;
-    vector<int> child2 = parent2.path;
-
-    for (int i = point1; i <= point2; ++i) {
-        swap(child1[i], child2[i]);
-    }
-
-    parent1.path = child1;
-    parent2.path = child2;
-
-    parent1.fitness = calculateFitness(parent1.path);
-    parent2.fitness = calculateFitness(parent2.path);
-}
 
 void GeneticAlgorithm::mutateInversion(Individual& individual) {
     uniform_int_distribution<int> dist(0, individual.path.size() - 1);
@@ -291,95 +177,44 @@ void GeneticAlgorithm::crossOverOX(Individual& parent1, Individual& parent2) {
 }
 
 
+
 void GeneticAlgorithm::crossOverCX(Individual& parent1, Individual& parent2) {
     int size = parent1.path.size();
-    vector<int> child(size, -1);
+    vector<int> child1(size, -1);
+    vector<int> child2(size, -1);
+
     vector<bool> visited(size, false);
 
-    int start = 0;
-    int current = parent1.path[start];
+    // Start the cycle with the first element
+    int index = 0;
+    while (!visited[index]) {
+        visited[index] = true;
+        child1[index] = parent1.path[index];
+        child2[index] = parent2.path[index];
 
-    // Tworzymy cykl z pierwszego rodzica
-    while (!visited[current]) {
-        visited[current] = true;
-        child[current] = parent1.path[current];
-
-        // Znajdujemy indeks tego miasta w drugim rodzicu
-        int index = find(parent2.path.begin(), parent2.path.end(), parent1.path[current]) - parent2.path.begin();
-        current = parent1.path[index];
+        // Find the corresponding index in parent2
+        int value = parent2.path[index];
+        index = find(parent1.path.begin(), parent1.path.end(), value) - parent1.path.begin();
     }
 
-    // Wypełniamy pozostałe pozycje danymi z drugiego rodzica
+    // Fill remaining positions from the other parent
     for (int i = 0; i < size; i++) {
-        if (child[i] == -1) {
-            child[i] = parent2.path[i];
+        if (child1[i] == -1) {
+            child1[i] = parent2.path[i];
+            child2[i] = parent1.path[i];
         }
     }
 
-    // Aktualizacja osobnika
-    parent1.path = child;
+    // Assign the children paths to the parents
+    parent1.path = child1;
+    parent2.path = child2;
+
+    // Recalculate fitness for the children
     parent1.fitness = calculateFitness(parent1.path);
+    parent2.fitness = calculateFitness(parent2.path);
 }
 
 
-
-void GeneticAlgorithm::crossOverERX(Individual& parent1, Individual& parent2) {
-    int size = parent1.path.size();
-    unordered_map<int, unordered_set<int>> adjacencyList;
-
-    // Tworzenie listy sąsiedztwa dla obu rodziców
-    auto addEdge = [&](int a, int b) {
-        adjacencyList[a].insert(b);
-        adjacencyList[b].insert(a);
-    };
-
-    for (int i = 0; i < size; ++i) {
-        int next = (i + 1) % size;
-        addEdge(parent1.path[i], parent1.path[next]);
-        addEdge(parent2.path[i], parent2.path[next]);
-    }
-
-    vector<int> child(size, -1);
-    unordered_set<int> used;
-
-    // Wybór początkowego miasta losowo
-    int current = parent1.path[uniform_int_distribution<int>(0, size - 1)(rng)];
-    child[0] = current;
-    used.insert(current);
-
-    for (int i = 1; i < size; ++i) {
-        // Usuwamy bieżące miasto z list sąsiedztwa
-        for (auto& [key, neighbors] : adjacencyList) {
-            neighbors.erase(current);
-        }
-
-        // Wybieramy następne miasto
-        int nextCity = -1;
-        if (!adjacencyList[current].empty()) {
-            // Znajdź miasto z najmniejszą liczbą sąsiadów
-            nextCity = *min_element(
-                adjacencyList[current].begin(),
-                adjacencyList[current].end(),
-                [&](int a, int b) { return adjacencyList[a].size() < adjacencyList[b].size(); }
-            );
-        } else {
-            // Jeśli nie ma dostępnych sąsiadów, wybierz losowe nieużyte miasto
-            for (int city : parent1.path) {
-                if (used.find(city) == used.end()) {
-                    nextCity = city;
-                    break;
-                }
-            }
-        }
-
-        child[i] = nextCity;
-        used.insert(nextCity);
-        current = nextCity;
-    }
-
-    parent1.path = child;
-    parent1.fitness = calculateFitness(parent1.path);
-}
 
 
 Individual GeneticAlgorithm::tournamentSelection(int tournamentSize) {
@@ -479,13 +314,7 @@ void GeneticAlgorithm::evolve() {
         double RNG = (double)rng() / rng.max();
       //  printf("%lf, max: %lf, %lf, %lf\n", (double)rng(), rng.max(), crossoverRate, RNG);
         if (RNG < crossoverRate) {
-            if (crossOption==0){
-                crossOverOX(parent1, parent2);
-            } else if (crossOption==1){
-
-                crossOverPMX(parent1, parent2);
-
-            }
+            crossOverOX(parent1, parent2);
         }
 
 /*            if ((double)rng() / rng.max() < mutationRate) {
@@ -506,7 +335,7 @@ void GeneticAlgorithm::evolve() {
     }
 
     population = newPopulation;
-    filterPopulation();
+   // filterPopulation();
 }
 
 Individual GeneticAlgorithm::getBestIndividual() {
@@ -530,10 +359,10 @@ pair<vector<int>, int> GeneticAlgorithm::run(string name) {
 
     while (std::chrono::duration<double>(std::chrono::steady_clock::now() - startTime).count() < timeLimit) {
 
-
+   //     cout << "no\n";
         evolve();
 
-
+   //     cout << "yes\n";
         Individual best = getBestIndividual();
         double relativeError = std::fabs(bestCost - optimal) / optimal * 100;
       //  cout << relativeError<<", " << elapsedSeconds << ", " << bestBest.fitness   <<", "<< best.fitness <<"\n";
