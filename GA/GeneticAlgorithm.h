@@ -28,43 +28,36 @@ private:
     int populationSize;
     double crossoverRate;
     double mutationRate;
-    int crossOption;
     int mutOption;
     vector<pair<double, double>> relativeErrorData;
-    double lowestError;
     int bestCost;
     vector<int> bestPath;
     double timeLimit;
     int optimal;
-    random_device dev;
-    mt19937 rng;
+
     //uniform_int_distribution<double> gen(0, 1);
     void initializePopulation();
-    void filterPopulation();
-    void crossOver2Opt(Individual& parent1, Individual& parent2);
+
     int calculateFitness(const vector<int>& path);
-    Individual randomSelection();
-    Individual rouletteWheelSelection();
+
     Individual tournamentSelection(int tournamentSize);
-    void rouletteWheelSelection(Individual& selected);
+
     vector<int> nearestNeighborHeuristic();
-    void crossoverOnePoint(Individual& parent1, Individual& parent2);
+
     void crossOverOX(Individual& parent1, Individual& parent2);
-    void crossOverCX(Individual& parent1, Individual& parent2);
-    void crossOverPMX(Individual& parent1, Individual& parent2);
-    void crossoverTwoPoint(Individual& parent1, Individual& parent2);
+
     void mutateInversion(Individual& individual);
     void mutateSwap(Individual& individual);
-    void crossOverERX(Individual& parent1, Individual& parent2);
+
     void evolve();
     Individual getBestIndividual();
-    void tournamentSelection(vector<Individual>& selected);
+
 public:
     GeneticAlgorithm(const DynamicMatrix& matrix, int popSize, double crossRate, double mutRate, int mutChoice, double timeLimit, int optimal)
-            : costMatrix(matrix), populationSize(popSize), crossoverRate(crossRate), mutationRate(mutRate), rng(dev()), mutOption(mutChoice), timeLimit(timeLimit), optimal(optimal) {
+            : costMatrix(matrix), populationSize(popSize), crossoverRate(crossRate), mutationRate(mutRate), mutOption(mutChoice), timeLimit(timeLimit), optimal(optimal) {
         bestCost = INT_MAX;
     }
-
+ //   void crossOverOX(Individual& parent1, Individual& parent2);
     GeneticAlgorithm(){bestCost = INT_MAX;};
    // void crossOverPMX(Individual& parent1, Individual& parent2);
     pair<vector<int>, int> run(string name);

@@ -20,12 +20,11 @@ void readConfig()
     int population=std::stoi(config["population"]);
     double crossRate=std::stod(config["crossRate"]);
     double mutationRate=std::stod(config["mutationRate"]);
-    int crossChoice=std::stoi(config["crossChoice"]);
     int mutChoice=std::stoi(config["mutChoice"]);
     double timeLimit=std::stod(config["timeLimit"]);
 
 
-    printf("%s, %d, %d, %lf, %lf, %d, %d, %lf\n", fileName.c_str(), optimal, population, crossRate, mutationRate, crossChoice, mutChoice, timeLimit);
+    printf("%s, %d, %d, %lf, %lf,  %d, %lf\n", fileName.c_str(), optimal, population, crossRate, mutationRate,  mutChoice, timeLimit);
 
 
     auto graph = Parser::loadGraphFromXML(fileName);
@@ -51,14 +50,13 @@ void readConfig()
 void test()
 {
     // 3 plik
-    // 2 krzyżowania
     // 2 mutacje
     // a) 3 wielkości populacji, dla wsp. krzyżowania 0.8, dla wsp. mutacji 0.01, dla czasu 120 sek.
     // b) dla najlepszej populacji, dla wsp. krzyżowania 0.8, dla 3 różnych wsp mutacji: 0.01, 0.05, 0.01
     // c) dla najlepszej populacji, dla wsp. mutacji 0.01, dla 3 różnych wsp krzyżowania: 0.5, 0.7, 0.9
     //3 pliki
     //2 mutacje
-    //2 crossover
+
 
 
 
@@ -94,19 +92,13 @@ void test()
 
 
 
-
-
-
-
-    for(int i=0; i<2; i++)//3 pliki
+    for(int i=0; i<3; i++)//3 pliki
     {
         string filepath = "../wyniki/" + names[i] + ".csv";
         std::ofstream file(filepath, std::ios_base::app);
 
         file << names[i] << "\n";
         file.close();
-
-
 
         auto graph = Parser::loadGraphFromXML(file_path[i]);
         DynamicMatrix matrix;
@@ -164,7 +156,7 @@ void test()
 
 
 
-    for(int i=0; i<2; i++)//3 pliki
+    for(int i=0; i<3; i++)//3 pliki
     {
         string filepath = "../wyniki/" + names[i] + "Krzyzowanie.csv";
         std::ofstream file(filepath, std::ios_base::app);
@@ -209,7 +201,7 @@ void test()
 
 
 
-    for(int i=0; i<2; i++)//3 pliki
+    for(int i=0; i<3; i++)//3 pliki
     {
         string filepath = "../wyniki/" + names[i] + "Mutacja.csv";
         std::ofstream file(filepath, std::ios_base::app);
@@ -260,22 +252,10 @@ void test()
 
 
 int main(){
-//    unordered_map<int, int> mapping;
-//    mapping[3] = 6;
-//    mapping[4] = 9;
-//    mapping[5] = 2;
-//    mapping[6] = 1;
-//    printf("%zu, %zu, %zu", mapping.count(3), mapping.count(6), mapping.count(1));
- //   neu();
 
-  //  readConfig();
-    /*std::cout << "Hello, World!" << std::endl;
-    random_device dev;
-    mt19937 rng(dev());
+   readConfig();
 
-    std::uniform_int_distribution<mt19937::result_type> dis(0, 6 - 1);
-    printf("%d, %d", dis(rng), dis(rng));*/
-    test();
+   // test();
     return 0;
 }
 

@@ -1,8 +1,7 @@
 inputFileName=ftv47.xml
 optimal=1776
-population=100
+population=200
 crossRate=0.8
 mutationRate=0.01
-crossChoice=1
-mutChoice=0
-timeLimit=60
+mutChoice=1
+timeLimit=120

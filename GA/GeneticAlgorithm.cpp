@@ -15,33 +15,10 @@ using namespace std;
 
 
 
-
-
-void GeneticAlgorithm::filterPopulation() {
-    // Posortuj populację według fitness (rosnąco, jeśli minimalizujemy)
-    sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
-        return a.fitness < b.fitness;
-    });
-
-    // Zachowaj najlepsze 25% osobników
-    int eliteSize = populationSize / 4;
-    vector<Individual> newPopulation(population.begin(), population.begin() + eliteSize);
-
-    // Uzupełnij populację nowymi losowymi osobnikami
-    for (int i = eliteSize; i < populationSize; ++i) {
-        vector<int> path(costMatrix.getSize());
-        iota(path.begin(), path.end(), 0); // Permutacja: 0, 1, ..., size-1
-        shuffle(path.begin(), path.end(), rng); // Losowe tasowanie
-        newPopulation.push_back({path, calculateFitness(path)});
-    }
-
-    // Zastąp starą populację nową
-    population = newPopulation;
-}
-
-
 vector<int> GeneticAlgorithm::nearestNeighborHeuristic() {
     int size = costMatrix.getSize();
+    random_device dev;
+    mt19937 rng(dev());
     vector<int> path;
     vector<bool> visited(size, false);
     uniform_int_distribution<int> gen(0, costMatrix.getSize()-1);
@@ -76,7 +53,8 @@ vector<int> GeneticAlgorithm::nearestNeighborHeuristic() {
 void GeneticAlgorithm::initializePopulation() {
     int size = costMatrix.getSize();
     uniform_int_distribution<int> dist(0, size - 1);
-
+    random_device dev;
+    mt19937 rng(dev());
     // Proporcje losowych i heurystycznych osobników
     int randomIndividuals = populationSize * 0.7;  // 70% losowych
     int heuristicIndividuals = populationSize - randomIndividuals;  // 30% heurystycznych
@@ -115,6 +93,8 @@ int GeneticAlgorithm::calculateFitness(const vector<int>& path) {
 
 void GeneticAlgorithm::mutateInversion(Individual& individual) {
     uniform_int_distribution<int> dist(0, individual.path.size() - 1);
+    random_device dev;
+    mt19937 rng(dev());
     int point1 = dist(rng);
     int point2 = dist(rng);
 
@@ -126,6 +106,8 @@ void GeneticAlgorithm::mutateInversion(Individual& individual) {
 
 void GeneticAlgorithm::mutateSwap(Individual& individual) {
     uniform_int_distribution<int> dist(0, individual.path.size() - 1);
+    random_device dev;
+    mt19937 rng(dev());
     int point1 = dist(rng);
     int point2 = dist(rng);
 
@@ -136,11 +118,12 @@ void GeneticAlgorithm::mutateSwap(Individual& individual) {
 void GeneticAlgorithm::crossOverOX(Individual& parent1, Individual& parent2) {
     int size = parent1.path.size();
     uniform_int_distribution<int> dist(0, size - 1);
-
+    random_device dev;
+    mt19937 rng(dev());
     // Randomly select two crossover points
     int point1 = dist(rng);
     int point2 = dist(rng);
-
+ //   printf("%d, %d\n", point1, point2);
     if (point1 > point2) swap(point1, point2);
 
     // Initialize child paths
@@ -158,6 +141,7 @@ void GeneticAlgorithm::crossOverOX(Individual& parent1, Individual& parent2) {
     int idx2 = (point2 + 1) % size;
     for (int i = 0; i < size; ++i) {
         if (find(child1.begin(), child1.end(), parent2.path[i]) == child1.end()) {
+        //    cout << child1[idx1] << ", " << parent2.path[i] <<endl;
             child1[idx1] = parent2.path[i];
             idx1 = (idx1 + 1) % size;
         }
@@ -178,47 +162,12 @@ void GeneticAlgorithm::crossOverOX(Individual& parent1, Individual& parent2) {
 
 
 
-void GeneticAlgorithm::crossOverCX(Individual& parent1, Individual& parent2) {
-    int size = parent1.path.size();
-    vector<int> child1(size, -1);
-    vector<int> child2(size, -1);
-
-    vector<bool> visited(size, false);
-
-    // Start the cycle with the first element
-    int index = 0;
-    while (!visited[index]) {
-        visited[index] = true;
-        child1[index] = parent1.path[index];
-        child2[index] = parent2.path[index];
-
-        // Find the corresponding index in parent2
-        int value = parent2.path[index];
-        index = find(parent1.path.begin(), parent1.path.end(), value) - parent1.path.begin();
-    }
-
-    // Fill remaining positions from the other parent
-    for (int i = 0; i < size; i++) {
-        if (child1[i] == -1) {
-            child1[i] = parent2.path[i];
-            child2[i] = parent1.path[i];
-        }
-    }
-
-    // Assign the children paths to the parents
-    parent1.path = child1;
-    parent2.path = child2;
-
-    // Recalculate fitness for the children
-    parent1.fitness = calculateFitness(parent1.path);
-    parent2.fitness = calculateFitness(parent2.path);
-}
-
-
 
 
 Individual GeneticAlgorithm::tournamentSelection(int tournamentSize) {
     vector<Individual> tournamentGroup;
+    random_device dev;
+    mt19937 rng(dev());
     for (int i = 0; i < tournamentSize; ++i) {
         int randomIndex = uniform_int_distribution<int>(0, population.size() - 1)(rng);
         tournamentGroup.push_back(population[randomIndex]);
@@ -231,69 +180,17 @@ Individual GeneticAlgorithm::tournamentSelection(int tournamentSize) {
 }
 
 
-
-void GeneticAlgorithm::tournamentSelection(vector<Individual>& selected) {
-    int tournamentSize = 3; // Liczba osobników biorących udział w turnieju
-    for (int i = 0; i < tournamentSize; ++i) {
-        uniform_int_distribution<int> dist(0, population.size() - 1);
-        int index = dist(rng);
-        selected.push_back(population[index]);
-    }
-
-    // Wybór najlepszego osobnika
-    sort(selected.begin(), selected.end(), [](const Individual& a, const Individual& b) {
-        return a.fitness < b.fitness; // Mniejszy koszt (fitness) oznacza lepszy osobnik
-    });
-}
-Individual GeneticAlgorithm::randomSelection() {
-    int randomIndex = uniform_int_distribution<int>(0, population.size() - 1)(rng);
-    return population[randomIndex];
-}
-
 void GeneticAlgorithm::evolve() {
     vector<Individual> newPopulation;
     vector<Individual> tempPop;
-/*    for(int city:getBestIndividual().path){
-        cout << city << " ";
-    }
-    cout << getBestIndividual().path[0] << endl;
-    cout << getBestIndividual().fitness << endl;
-    cout << population.begin()->fitness << endl;*/
-/*    sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
-        return a.fitness < b.fitness;
-    });
-   // cout << population.begin()->fitness << endl << endl;
-    // Zachowaj najlepsze 25% osobników
-    int eliteSize = populationSize / 4;
-    vector<Individual> newPopulation(population.begin(), population.begin() + eliteSize);*/
-
-
-
-
-    // Uzupełnij populację nowymi losowymi osobnikami
-/*    for (int i = eliteSize; i < populationSize; ++i) {
-        vector<int> path(costMatrix.getSize());
-        iota(path.begin(), path.end(), 0); // Permutacja: 0, 1, ..., size-1
-        shuffle(path.begin(), path.end(), rng); // Losowe tasowanie
-        newPopulation.push_back({path, calculateFitness(path)});
-    }*/
 
     sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
         return a.fitness < b.fitness;
     });
 
     newPopulation.insert(newPopulation.end(), population.begin(), population.begin() + populationSize/4);
-
-
-
-
-
-
-    /*sort(population.begin(), population.end(), [](const Individual& a, const Individual& b) {
-        return a.fitness > b.fitness;
-    });*/
-
-
+    //zastosowanie elitaryzmu dla 25% najlepszych osobników
+    //zostaną dodani w niezmienionej postaci do nowej populacji, jednak mogą także wykorzystane do utworzenia nowych potomków
 
 
 
@@ -305,22 +202,14 @@ void GeneticAlgorithm::evolve() {
         parent1 = tournamentSelection(5);
         parent2 = tournamentSelection(5);
 
-       // vector<Individual> selected;
-     //   tournamentSelection(selected);
-        //rouletteWheelSelection(selected);
-
-/*        Individual parent1 = population[i];
-        Individual parent2 = population[i + 1];*/
+        random_device dev;
+        mt19937 rng(dev());
         double RNG = (double)rng() / rng.max();
-      //  printf("%lf, max: %lf, %lf, %lf\n", (double)rng(), rng.max(), crossoverRate, RNG);
+
         if (RNG < crossoverRate) {
             crossOverOX(parent1, parent2);
         }
 
-/*            if ((double)rng() / rng.max() < mutationRate) {
-            mutateInversion(parent1);
-            mutateSwap(parent2);
-        }*/
         RNG = (double)rng() / rng.max();
      //   printf("%lf, max: %lf, %lf, %lf\n", (double)rng(), rng.max(), crossoverRate, RNG);
         if (RNG < mutationRate) {
@@ -335,7 +224,7 @@ void GeneticAlgorithm::evolve() {
     }
 
     population = newPopulation;
-   // filterPopulation();
+
 }
 
 Individual GeneticAlgorithm::getBestIndividual() {
@@ -359,10 +248,9 @@ pair<vector<int>, int> GeneticAlgorithm::run(string name) {
 
     while (std::chrono::duration<double>(std::chrono::steady_clock::now() - startTime).count() < timeLimit) {
 
-   //     cout << "no\n";
         evolve();
 
-   //     cout << "yes\n";
+
         Individual best = getBestIndividual();
         double relativeError = std::fabs(bestCost - optimal) / optimal * 100;
       //  cout << relativeError<<", " << elapsedSeconds << ", " << bestBest.fitness   <<", "<< best.fitness <<"\n";
@@ -380,30 +268,23 @@ pair<vector<int>, int> GeneticAlgorithm::run(string name) {
 
         if (elapsedSeconds - prev_elapsed >= 1.0) {
             prev_elapsed = elapsedSeconds;
-         //   file << elapsedSeconds << ";" << relativeError << ";" << bestCost << ";" << optimal <<"\n";
-            cout << relativeError<<", " << elapsedSeconds << ", " << bestCost   <<", "<< best.fitness <<", "<< to_string(crossOption)+
-                                                                                                                 to_string(mutOption)<<"\n\n";
+            file << elapsedSeconds << ";" << relativeError << ";" << bestCost << ";" << optimal <<"\n";
+            cout << relativeError<<", " << elapsedSeconds << ", " << bestCost   <<", "<< best.fitness <<", "<<  to_string(mutOption)<<"\n\n";
             //cout << "Elapsed time: " << elapsedSeconds << " s" << endl;
         }
       //  cout << "Best fitness: " << best.fitness << endl;
 
     }
-    file << "\n\n";
+    file << "\n\na";
 
- //
+
     file.close();
 
-/*        for (int gen = 0; gen < generations; ++gen) {
-        evolve();
-    }*/
-
     Individual best = getBestIndividual();
-    //cout << "Best fitness: " << best.fitness << endl;
+
     /*cout << "Best fitness: " << bestCost << endl;
     cout << "Path: ";*/
-/*    for (int city : best.path) {
-        cout << city << " ";
-    }*/
+
     /*for(int city : bestPath){
         cout << city << " ";
     }
@@ -412,12 +293,3 @@ pair<vector<int>, int> GeneticAlgorithm::run(string name) {
     //return {best.path, best.fitness};
 }
 
-
-/*
-void save(int it, int vertices, int bestCost, double bestTime, double totalTime, double error) {
-    std::ofstream file("results090.csv", std::ios::app);
-    if (file.is_open()) {
-        file << it << ";"<<vertices << ";" << bestCost << ";" << initialCost <<";" << bestTime << ";" << totalTime << ";" <<error << "\n";
-        file.close();
-    }
-}*/
